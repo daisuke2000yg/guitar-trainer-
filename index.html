@@ -598,6 +598,20 @@ function showIntervalFromPrev(midi){
 function showMiniFretboard(noteName){
   const el=document.getElementById('n-mini-fb');el.classList.remove('hidden');el.innerHTML='';
   const tbl=document.createElement('table');tbl.className='mini-fbtbl';
+  const MARKER=[3,5,7,9,12];
+  const hr=document.createElement('tr');
+  const lh=document.createElement('td');lh.className='mini-slbl';hr.appendChild(lh);
+  for(let f=0;f<=17;f++){
+    const td=document.createElement('td');
+    td.style.cssText='text-align:center;vertical-align:bottom;padding-bottom:2px;height:14px;';
+    if(MARKER.includes(f)){
+      td.textContent=f;td.style.fontSize='9px';td.style.fontWeight='900';td.style.color='var(--or)';
+    } else if(f===0||f%2===0){
+      td.textContent=f===0?'0':f;td.style.fontSize='7px';td.style.color='#3a3a3a';
+    }
+    hr.appendChild(td);
+  }
+  tbl.appendChild(hr);
   for(let si=0;si<6;si++){
     const row=document.createElement('tr');
     const lbl=document.createElement('td');lbl.className='mini-slbl';lbl.textContent=STR_NAME[si];row.appendChild(lbl);
