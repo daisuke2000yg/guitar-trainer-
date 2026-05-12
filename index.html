@@ -507,7 +507,7 @@ function go(mode){locked=false;if(mode==='note'){initNote();show('note-screen');
 let locked=false;
 function lock(ms){locked=true;setTimeout(()=>locked=false,ms);}
 
-let noteDiff='beg',listenMode=false,listenTimer=null;
+let noteDiff='beg',listenMode=false,listenTimer=null,noteWaiting=false;
 let noteScore={ok:0,tot:0,str:0},noteMidi=null,noteAns=null,prevNoteMidi=null;
 
 function getNotePool(){
@@ -516,7 +516,7 @@ function getNotePool(){
   return Array.from({length:25},(_,i)=>40+i);
 }
 function initNote(){
-  noteScore={ok:0,tot:0,str:0};prevNoteMidi=null;listenMode=false;
+  noteScore={ok:0,tot:0,str:0};prevNoteMidi=null;listenMode=false;noteWaiting=false;
   document.getElementById('listen-btn').classList.remove('on');
   document.getElementById('listen-btn').textContent='👂 聴くだけモード（音名・指板を自動表示）';
   document.getElementById('n-btns').classList.remove('hidden');
@@ -544,13 +544,15 @@ function stopListen(){
 }
 function nextNote(){
   if(listenTimer){clearTimeout(listenTimer);listenTimer=null;}
-  locked=false;
+  locked=false;noteWaiting=false;
   document.getElementById('n-fb').className='n-fb';
   document.getElementById('n-note').textContent='?';
   document.getElementById('n-int').textContent='';
   document.getElementById('n-vrd').textContent='';
   document.getElementById('n-mini-fb').classList.add('hidden');
   document.querySelectorAll('.nb').forEach(b=>{b.classList.remove('ok','ng');b.disabled=false;});
+  const pring=document.querySelector('#note-screen .pring');
+  if(pring){pring.querySelector('.pi').textContent='▶';pring.querySelector('.pl').textContent='PLAY';}
   const pool=getNotePool();
   noteMidi=pool[Math.floor(Math.random()*pool.length)];
   noteAns=NOTES[((noteMidi%12)+12)%12];
@@ -565,15 +567,22 @@ function revealListenAnswer(){
   prevNoteMidi=noteMidi;
   listenTimer=setTimeout(()=>nextNote(),3800);
 }
-function replayNote(){if(noteMidi)pluck(noteMidi);}
+function replayNote(){
+  if(noteWaiting){nextNote();return;}
+  if(noteMidi)pluck(noteMidi);
+}
 function ansNote(n){
-  if(listenMode||locked)return;lock(1400);
+  if(listenMode||locked||noteWaiting)return;locked=true;
   noteScore.tot++;
   const ok=n===noteAns;
   if(ok){noteScore.ok++;noteScore.str++;saveBest('note',noteScore.str);document.getElementById('n-fb').className='n-fb ok';document.getElementById('n-note').textContent=noteAns;document.getElementById('n-vrd').textContent='✓ 正解！';document.getElementById('nb-'+n.replace('#','s')).classList.add('ok');}
   else{noteScore.str=0;document.getElementById('n-fb').className='n-fb ng';document.getElementById('n-note').textContent=noteAns;document.getElementById('n-vrd').textContent='✗ 正解は '+noteAns;document.getElementById('nb-'+n.replace('#','s')).classList.add('ng');document.getElementById('nb-'+noteAns.replace('#','s')).classList.add('ok');setTimeout(()=>pluck(noteMidi),350);}
   showIntervalFromPrev(noteMidi);showMiniFretboard(noteAns);prevNoteMidi=noteMidi;
-  updNoteScore();setTimeout(()=>nextNote(),ok?1000:1700);
+  updNoteScore();
+  noteWaiting=true;locked=false;
+  document.querySelectorAll('.nb').forEach(b=>b.disabled=true);
+  const pring=document.querySelector('#note-screen .pring');
+  if(pring){pring.querySelector('.pi').textContent='▶';pring.querySelector('.pl').textContent='NEXT';}
 }
 function showIntervalFromPrev(midi){
   if(prevNoteMidi===null)return;
