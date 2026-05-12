@@ -606,8 +606,8 @@ function showMiniFretboard(noteName){
     td.style.cssText='text-align:center;vertical-align:bottom;padding-bottom:2px;height:14px;';
     if(MARKER.includes(f)){
       td.textContent=f;td.style.fontSize='9px';td.style.fontWeight='900';td.style.color='var(--or)';
-    } else if(f===0||f%2===0){
-      td.textContent=f===0?'0':f;td.style.fontSize='7px';td.style.color='#3a3a3a';
+    } else if(f!==0&&f%2===0){
+      td.textContent=f;td.style.fontSize='7px';td.style.color='#3a3a3a';
     }
     hr.appendChild(td);
   }
